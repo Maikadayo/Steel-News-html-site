@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Eiffel Tower on Mapbox</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <!-- Include the Mapbox GL CSS -->
+  <link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body, html { height: 100%; margin: 0; padding: 0; }
+    #map { height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <!-- Include the Mapbox GL JS -->
+  <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaGFydWNoYW5uIiwiYSI6ImNsdnFlZWRidTAyNmkya21yem1wMjhzZHUifQ.GrEXJlVvv0ljdkQXoEQTTQ';
+    const map = new mapboxgl.Map({
+      container: 'map', // container ID
+      style:  'mapbox://styles/haruchann/clvqqksup01r901qpg3d0hynv',  // style URL
+      center: [2.2945, 48.8584], // initial center coordinates
+      zoom: 3.5, // initial zoom
+      pitch: 0, // pitch in degrees
+      bearing: 0 // bearing in degrees
+    });
+
+    map.addControl(new mapboxgl.NavigationControl());
+
+    map.on('style.load', () => {
+        map.setFog({}); // Set the default atmosphere style
+    });
+
+    const newsArticles = [
+      // your articles array
+    ];
+
+    newsArticles.forEach(article => {
+      const marker = new mapboxgl.Marker()
+        .setLngLat(article.location)
+        .addTo(map);
+
+      const popupContent = `
+        <strong>Title:</strong> ${article.title}<br>
+        <strong>Date:</strong> ${article.date}<br>
+        <p>${article.content}</p>
+      `;
+      
+      const popup = new mapboxgl.Popup({ offset: 25 })
+        .setHTML(popupContent);
+
+      marker.setPopup(popup);
+    });
+
+    // Globe spinning logic
+    const secondsPerRevolution = 240;
+    let userInteracting = false;
+    let spinEnabled = true;
+
+    function spinGlobe() {
+        if (spinEnabled && !userInteracting) {
+            let distancePerSecond = 360 / secondsPerRevolution;
+            const center = map.getCenter();
+            center.lng -= distancePerSecond;
+            map.easeTo({ center, duration: 1000, easing: (n) => n });
+        }
+    }
+
+    map.on('click', () => {
+        userInteracting = true;
+        spinEnabled = false; // Stop spinning when map is clicked
+    });
+
+    map.on('moveend', () => {
+        if (!userInteracting) {
+            spinGlobe(); // Resume spinning only if user interaction flag is reset
+        }
+    });
+
+    spinGlobe();
+  </script>
+</body>
+</html>
